@@ -44,7 +44,7 @@ class gravitor
 	void set_origin()
 	{
 		
-		const 
+		const m_image_bounds{};
 		
 		
 	}
