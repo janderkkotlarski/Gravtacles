@@ -44,20 +44,48 @@ class gravitor
 	void set_origin()
 	{
 		
-		const m_image_bounds{};
+		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};
 		
+		m_sprite.setOrigin(m_image_bounds.width, m_image_bounds.height);
 		
 	}
-	 
+	
+	void set_position(const sf::Vector2f& position)
+	{
+		
+		m_sprite.setPosition(position);
+		
+	}
+	
+	void set_color()
+	{
+		
+		if (m_strength < 0.0f)
+		{
+			
+			m_sprite.setColor(m_light_red);
+			
+		}
+		else
+		{
+			
+			m_sprite.setColor(m_light_blue);
+			
+		}
+		
+	}
+	
+	
+	
 	 
 };
- 
+
 int main()
 {
 	 
 	const std::string program_name{"Gravtacles V0.2"};
 	
-	assert(program_Name != "");
+	assert(program_name != "");
 	 
 	const float delta_time{0.025f};
 	 
