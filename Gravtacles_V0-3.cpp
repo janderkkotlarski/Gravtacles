@@ -90,6 +90,8 @@ class gravitor
 		
 		set_texture();
 		
+		set_sprite_texture();
+		
 		set_origin();
 		
 		set_position(position);
@@ -149,6 +151,12 @@ int main()
 	sf::Vector2f moving{0.0000004f*window_sizes};
 	
 	sf::Vector2f posit{circle.getPosition()};
+	
+	std::vector <float> strengths;
+	
+	
+	
+	std::vector <sf::Vector2f> pozitions;
 	
 	gravitor grav{1.0f, 0.8f*window_sizes};
 	 
