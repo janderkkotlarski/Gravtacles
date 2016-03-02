@@ -152,13 +152,26 @@ int main()
 	
 	sf::Vector2f posit{circle.getPosition()};
 	
-	std::vector <float> strengths;
+	std::vector <float> strengths{1.0f, -1.0f, 100.0f, -100.0f, 0.0f};
 	
+	const int grav_number{static_cast<int>(strengths.size())};	
 	
+	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.1f*window_x, 0.9f*window_y),
+										 sf::Vector2f(0.8f*window_x, 0.2f*window_y),
+										 sf::Vector2f(0.7f*window_x, 0.5f*window_y),
+										 sf::Vector2f(0.1f*window_x, 0.3f*window_y),
+										 sf::Vector2f(0.9f*window_x, 0.8f*window_y)};
 	
-	std::vector <sf::Vector2f> pozitions;
+	std::vector <gravitor> gravs;
 	
-	gravitor grav{1.0f, 0.8f*window_sizes};
+	for (int count{0}; count < grav_number; ++count)
+	{
+		
+		gravitor grav{strengths[count], pozitions[count]};
+		
+		gravs.push_back(grav);
+		
+	}
 	 
 	sf::RenderWindow window{sf::VideoMode(window_x, window_y), program_name, sf::Style::Default};
 	 
@@ -173,7 +186,12 @@ int main()
         
         window.draw(circle);
         
-        grav.show_gravitor(window);
+        for (int count{0}; count < grav_number; ++count)
+		{
+			
+			gravs[count].show_gravitor(window);
+			
+		}
         
         window.display();
         
