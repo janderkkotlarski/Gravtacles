@@ -13,11 +13,10 @@ class gravitor
 	
 	const float m_strength{1.0f};
 	
-	const sf::Color m_light_red{sf::Color(255, 63, 63)};
-	const sf::Color m_light_blue{sf::Color(63, 63, 255)};
+	const sf::Color m_light_red{sf::Color(255, 63, 63, 255)};
+	const sf::Color m_light_blue{sf::Color(63, 63, 255, 255)};
 	 
-	sf::Texture m_texture;
-	
+	sf::Texture m_texture;	
 	sf::Sprite m_sprite;
 	 
 	void set_texture()
@@ -44,8 +43,7 @@ class gravitor
 	void set_origin()
 	{
 		
-		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};
-		
+		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
 		m_sprite.setOrigin(m_image_bounds.width, m_image_bounds.height);
 		
 	}
@@ -60,16 +58,29 @@ class gravitor
 	void set_color()
 	{
 		
+		int opaque{abs(static_cast<int>(m_strength*255.0f))};
+		
+		if (opaque > 255)
+		{
+			
+			opaque = 255;
+			
+		}
+		
 		if (m_strength < 0.0f)
 		{
 			
-			m_sprite.setColor(m_light_red);
+			sf::Color light_red{m_light_red};			
+			light_red.a = opaque;			
+			m_sprite.setColor(light_red);
 			
 		}
 		else
 		{
 			
-			m_sprite.setColor(m_light_blue);
+			sf::Color light_blue{m_light_blue};			
+			light_blue.a = opaque;			
+			m_sprite.setColor(light_blue);
 			
 		}
 		
@@ -87,8 +98,7 @@ class gravitor
 	void set_spriterator()
 	{
 		
-		set_texture();
-		
+		set_texture();		
 		set_sprite_texture();
 		
 	}
@@ -97,14 +107,10 @@ class gravitor
 		: m_strength(strength), m_texture(), m_sprite()
 	{
 		
-		set_texture();
-		
-		set_sprite_texture();
-		
-		set_origin();
-		
-		set_position(position);
-		
+		set_texture();		
+		set_sprite_texture();		
+		set_origin();		
+		set_position(position);		
 		set_color();
 		
 	}
@@ -112,15 +118,109 @@ class gravitor
 	~gravitor()
 	{
 		
-	}
-	
+	}	
 	 
 };
+
+class cargo
+{
+	
+	const std::string m_file_name{"Ball.png"};
+	
+	const sf::Color m_light_orange{sf::Color(255, 196, 63, 255)};
+	
+	sf::Vector2f m_posit{0.0f, 0.0f};
+	sf::Vector2f m_speed{0.0f, 0.0f};
+	sf::Vector2f m_accel{0.0f, 0.0f};
+	
+	sf::Texture m_texture;	
+	sf::Sprite m_sprite;
+	 
+	void set_texture()
+	{
+		
+		assert(m_file_name != "");
+		
+		if (!m_texture.loadFromFile(m_file_name))
+		{
+				
+			std::cout << m_file_name << " not found!\n";
+				
+		}
+		 
+	}
+	
+	void set_sprite_texture()
+	{
+		
+		m_sprite.setTexture(m_texture);
+		
+	}
+	
+	void set_origin()
+	{
+		
+		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
+		m_sprite.setOrigin(m_image_bounds.width, m_image_bounds.height);
+		
+	}
+	
+	void set_color()
+	{
+
+		m_sprite.setColor(m_light_orange);
+		
+	}
+	
+	public:
+	
+	void set_position(const sf::Vector2f& position)
+	{
+		
+		m_sprite.setPosition(position);
+		
+	}
+	
+	void show_cargo(sf::RenderWindow& window)
+	{
+		
+		window.draw(m_sprite);
+			
+	}
+	
+	void set_spriterator()
+	{
+		
+		set_texture();		
+		set_sprite_texture();
+		
+	}
+	
+	cargo(const sf::Vector2f& position)
+		: m_posit(position),
+		  m_texture(), m_sprite()
+	{
+		
+		set_texture();		
+		set_sprite_texture();		
+		set_origin();		
+		set_position(m_posit);		
+		set_color();
+		
+	}
+	
+	~cargo()
+	{
+		
+	}
+	
+};
+
 
 int main()
 {
 	 
-	const std::string program_name{"Gravtacles V0.3"};
+	const std::string program_name{"Gravtacles V0.4"};
 	
 	assert(program_name != "");
 	 
@@ -161,7 +261,9 @@ int main()
 	
 	sf::Vector2f posit{circle.getPosition()};
 	
-	std::vector <float> strengths{1.0f, -1.0f, 100.0f, -100.0f, 0.0f};
+	cargo ball{sf::Vector2f(0.7f*window_x, 0.3f*window_y)};
+	
+	std::vector <float> strengths{1.0f, -1.0f, 0.1f, -0.7f, 0.3f};
 	
 	const int grav_number{static_cast<int>(strengths.size())};	
 	
@@ -207,6 +309,8 @@ int main()
 			gravs[count].show_gravitor(window);
 			
 		}
+		
+		ball.show_cargo(window);
         
         window.display();
         
