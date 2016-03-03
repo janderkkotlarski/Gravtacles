@@ -5,7 +5,7 @@
 #include <cmath>
  
 #include <SFML/Graphics.hpp>
- 
+
 class gravitor
 {
 	 
@@ -44,7 +44,7 @@ class gravitor
 	{
 		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
-		m_sprite.setOrigin(m_image_bounds.width, m_image_bounds.height);
+		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
 		
 	}
 	
@@ -161,7 +161,7 @@ class cargo
 	{
 		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
-		m_sprite.setOrigin(m_image_bounds.width, m_image_bounds.height);
+		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
 		
 	}
 	
@@ -179,7 +179,7 @@ class cargo
 		
 		m_sprite.setPosition(position);
 		
-	}
+	}	
 	
 	void show_cargo(sf::RenderWindow& window)
 	{
@@ -193,6 +193,20 @@ class cargo
 		
 		set_texture();		
 		set_sprite_texture();
+		
+	}
+	
+	sf::Vector2f get_position()
+	{
+		
+		return m_sprite.getPosition();
+		
+	}
+	
+	sf::FloatRect get_sizes()
+	{
+		
+		return m_sprite.getLocalBounds();
 		
 	}
 	
@@ -216,6 +230,149 @@ class cargo
 	
 };
 
+class pointer
+{
+	
+	const sf::Color m_light_cyan{sf::Color(63, 255, 255, 63)};
+	
+	sf::ConvexShape m_polygon;
+	
+	void init_polygon(cargo& ball)
+	{
+				
+		const sf::Vector2f position{ball.get_position()};
+		
+		const float mult{0.33f};
+		
+		const sf::FloatRect image_bounds{ball.get_sizes()};
+		
+			
+		const float width{mult*image_bounds.width};
+		const float height{mult*image_bounds.height};
+		
+		m_polygon.setPointCount(3);
+		
+		m_polygon.setPoint(0, position + sf::Vector2f(width, height));		
+		m_polygon.setPoint(1, position + sf::Vector2f(width, -height));		
+		m_polygon.setPoint(2, position + sf::Vector2f(-width, height));
+		
+		m_polygon.setFillColor(m_light_cyan);
+		
+	}
+	
+	public:
+	
+	void morph_polygon(sf::RenderWindow& window)
+	{
+		
+		m_polygon.setPoint(0, static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)));	
+			
+	}
+	
+	void show_polygon(sf::RenderWindow& window)
+	{
+		
+		window.draw(m_polygon);
+		
+	}
+	
+	pointer(cargo& ball)
+		: m_polygon()
+	{
+		
+		init_polygon(ball);
+		
+	}
+	
+	~pointer()
+	{
+		
+	}
+	
+};
+
+class target
+{
+	
+	const std::string m_file_name{"Ball.png"};
+	
+	const sf::Color m_light_purple{sf::Color(255, 63, 255, 255)};
+	
+	sf::Texture m_texture;
+	sf::Sprite m_sprite;
+	
+	void set_texture()
+	{
+		
+		assert(m_file_name != "");
+		
+		if (!m_texture.loadFromFile(m_file_name))
+		{
+				
+			std::cout << m_file_name << " not found!\n";
+				
+		}
+		 
+	}
+	
+	void set_sprite_texture()
+	{
+		
+		m_sprite.setTexture(m_texture);
+		
+	}
+	
+	void set_origin()
+	{
+		
+		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
+		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
+		
+	}
+	
+	void set_color()
+	{
+
+		m_sprite.setColor(m_light_purple);
+		
+	}
+	
+	void set_position(const sf::Vector2f& position)
+	{
+		
+		m_sprite.setPosition(position);
+		
+	}
+	
+	public:
+	
+	void show_target(sf::RenderWindow& window)
+	{
+		
+		window.draw(m_sprite);
+			
+	}
+	
+	target(const sf::Vector2f& position)
+		: m_texture(), m_sprite()
+	{
+		
+		set_texture();		
+		set_sprite_texture();		
+		set_origin();		
+		set_position(position);		
+		set_color();
+		
+	}
+	
+	~target()
+	{
+		
+	}
+	
+};
+
+
 
 int main()
 {
@@ -227,7 +384,7 @@ int main()
 	const float delta_time{0.025f};
 	 
 	const float window_x{704.0f};
-	const float window_y{640.0f};
+	const float window_y{704.0f};
 	
 	assert(window_x > 0.0f);
 	assert(window_y > 0.0f);
@@ -243,28 +400,19 @@ int main()
     const sf::Color yellow{sf::Color(255, 255, 0)};
     const sf::Color green{sf::Color(0, 255, 0)};
     const sf::Color blue{sf::Color(127, 127, 255)};
-	 
-	sf::Color change{sf::Color(127, 0, 63)};
+
+	const sf::Vector2f begin_posit{0.05f*window_sizes};
+	const sf::Vector2f end_posit{0.95f*window_sizes};
 	
-	const float radius{50.0f};
-	assert(radius > 0.0f);
 	
-	sf::CircleShape circle{radius};
 	
-	circle.setOrigin(radius, radius);
+	cargo ball{begin_posit};
 	
-	circle.setPosition(0.5f*window_sizes);
+	pointer triforce{ball};
 	
-	circle.setFillColor(change);
+	target goal{end_posit};
 	
-	sf::Vector2f moving{0.0000004f*window_sizes};
-	
-	sf::Vector2f posit{circle.getPosition()};
-	
-	cargo ball{sf::Vector2f(0.7f*window_x, 0.3f*window_y)};
-	
-	std::vector <float> strengths{1.0f, -1.0f, 0.1f, -0.7f, 0.3f};
-	
+	std::vector <float> strengths{1.0f, -1.0f, 0.1f, -0.7f, 0.3f};	
 	const int grav_number{static_cast<int>(strengths.size())};	
 	
 	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.1f*window_x, 0.9f*window_y),
@@ -289,7 +437,6 @@ int main()
 		
 	}
 	 
-	 
 	sf::RenderWindow window{sf::VideoMode(window_x, window_y), program_name, sf::Style::Default};
 	 
 	while (window.isOpen())
@@ -300,9 +447,7 @@ int main()
         sf::Event event;
         
         window.clear(black);
-        
-        window.draw(circle);
-        
+            
         for (int count{0}; count < grav_number; ++count)
 		{
 			
@@ -311,44 +456,25 @@ int main()
 		}
 		
 		ball.show_cargo(window);
+		
+		goal.show_target(window);
+		
+		triforce.show_polygon(window);
         
         window.display();
         
-        change.g = ((change.g + 1) % 256);
-                
-        circle.setFillColor(change);
+        triforce.morph_polygon(window);
         
         while(clock.getElapsedTime().asSeconds() < delta_time)
         {						
-			
-			posit = posit + moving;
-			
-			
-			if ((posit.x < radius) ||
-			    (posit.x + radius > window_x))
-			{
-				
-				moving.x *= -1;
-				
-			}
-			
-			if ((posit.y < radius) ||
-			    (posit.y + radius > window_y))
-			{
-				
-				moving.y *= -1;
-				
-			}
-			
+
 		}
-		
-		circle.setPosition(posit);
+
                     
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         {
             
-            window.close();
-                    
+            window.close();                    
 			return 1;
                     
         }    
@@ -359,14 +485,12 @@ int main()
             if (event.type == sf::Event::Closed)
             {
                 
-                window.close();
-                
+                window.close();                
                 return 2;
                 
             }
         
-		}
-            
+		}            
 
     }
 	 
