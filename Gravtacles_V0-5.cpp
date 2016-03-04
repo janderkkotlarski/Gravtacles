@@ -11,6 +11,8 @@ class gravitor
 	 
 	const std::string m_file_name{"Field.png"};
 	
+	float m_radius{0.0f};
+	
 	const float m_strength{1.0f};
 	
 	const sf::Color m_light_red{sf::Color(255, 63, 63, 255)};
@@ -45,6 +47,7 @@ class gravitor
 		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
 		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
+		m_radius = 0.25f*(m_image_bounds.width + m_image_bounds.height);
 		
 	}
 	
@@ -103,6 +106,20 @@ class gravitor
 		
 	}
 	
+	float show_radius()
+	{
+		
+		return m_radius;
+		
+	}
+	
+	sf::Vector2f get_position()
+	{
+		
+		return m_sprite.getPosition();
+		
+	}
+	
 	gravitor(const float strength, const sf::Vector2f& position)
 		: m_strength(strength), m_texture(), m_sprite()
 	{
@@ -126,6 +143,8 @@ class cargo
 {
 	
 	const std::string m_file_name{"Ball.png"};
+	
+	float m_radius{0.0f};
 	
 	const sf::Color m_light_orange{sf::Color(255, 196, 63, 255)};
 	
@@ -162,6 +181,7 @@ class cargo
 		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
 		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
+		m_radius = 0.25f*(m_image_bounds.width + m_image_bounds.height);
 		
 	}
 	
@@ -193,6 +213,20 @@ class cargo
 		
 		set_texture();		
 		set_sprite_texture();
+		
+	}
+	
+	void reset_accel()
+	{
+		
+		sf::Vector2f m_accel{0.0f, 0.0f};
+		
+	}
+	
+	float show_radius()
+	{
+		
+		return m_radius;
 		
 	}
 	
@@ -296,6 +330,8 @@ class target
 	
 	const std::string m_file_name{"Ball.png"};
 	
+	float m_radius{0.0f};
+	
 	const sf::Color m_light_purple{sf::Color(255, 63, 255, 255)};
 	
 	sf::Texture m_texture;
@@ -327,6 +363,7 @@ class target
 		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
 		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
+		m_radius = 0.25f*(m_image_bounds.width + m_image_bounds.height);
 		
 	}
 	
@@ -353,6 +390,13 @@ class target
 			
 	}
 	
+	float show_radius()
+	{
+		
+		return m_radius;
+		
+	}
+	
 	target(const sf::Vector2f& position)
 		: m_texture(), m_sprite()
 	{
@@ -372,12 +416,36 @@ class target
 	
 };
 
+float dist_squared(const sf::Vector2f& dist)
+{
+	
+	return dist.x*dist.x + dist.y*dist.y;
+	
+}
 
+float radius_squared(gravitor& grav)
+{
+	
+	return grav.show_radius()*grav.show_radius();
+	
+}
+
+void gravitas(cargo& ball, gravitor& grav)
+{
+	
+	const float mult{1.0f};
+	
+	const sf::Vector2f dist{ball.get_position() - grav.get_position()};
+	
+	
+	
+	
+}
 
 int main()
 {
 	 
-	const std::string program_name{"Gravtacles V0.4"};
+	const std::string program_name{"Gravtacles V0.5"};
 	
 	assert(program_name != "");
 	 
@@ -495,6 +563,14 @@ int main()
 					show_triforce = false;
 					
 				}
+				
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Right) &&
+					!show_triforce)
+				{
+					
+					stay_in_level = false;
+					
+				}
 											
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 				{
@@ -518,6 +594,8 @@ int main()
 				}
 				
 			}
+			
+			++current_level;
 			
 		}
 		
