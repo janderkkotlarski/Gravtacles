@@ -6,6 +6,13 @@
  
 #include <SFML/Graphics.hpp>
 
+float absuvect(const sf::Vector2f& vecator)
+{
+	
+	return std::sqrt(vecator.x*vecator.x + vecator.y*vecator.y);
+	
+}
+
 class gravitor
 {
 	 
@@ -113,6 +120,13 @@ class gravitor
 		
 	}
 	
+	float show_strength()
+	{
+		
+		return m_strength;
+		
+	}
+	
 	sf::Vector2f get_position()
 	{
 		
@@ -194,13 +208,25 @@ class cargo
 	
 	public:
 	
+	
+	
+	void set_position()
+	{
+		
+		m_sprite.setPosition(m_posit);
+		
+	}
+	
 	void set_position(const sf::Vector2f& position)
 	{
 		
-		m_sprite.setPosition(position);
 		
-	}	
-	
+		m_posit = position;
+		
+		set_position();
+		
+	}
+
 	void show_cargo(sf::RenderWindow& window)
 	{
 		
@@ -220,6 +246,38 @@ class cargo
 	{
 		
 		sf::Vector2f m_accel{0.0f, 0.0f};
+		
+	}
+	
+	void set_click_speed(sf::RenderWindow& window)
+	{
+		
+		const float mult{150.0f};
+
+		const sf::Vector2f direction{static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - m_posit};
+		
+		m_speed = mult*direction/absuvect(direction);
+
+	}
+	
+	void add_accel(const sf::Vector2f& accel)
+	{
+		
+		m_accel = m_accel + accel;
+		
+	}
+	
+	void speed_add_accel(const float delta_time)
+	{
+		
+		m_speed = m_speed + delta_time*m_accel;
+		
+	}
+	
+	void posit_add_speed(const float delta_time)
+	{
+		
+		m_posit = m_posit + delta_time*m_speed;
 		
 	}
 	
@@ -416,12 +474,7 @@ class target
 	
 };
 
-float dist_squared(const sf::Vector2f& dist)
-{
-	
-	return dist.x*dist.x + dist.y*dist.y;
-	
-}
+
 
 float radius_squared(gravitor& grav)
 {
@@ -430,16 +483,34 @@ float radius_squared(gravitor& grav)
 	
 }
 
+sf::Vector2f gravector(const sf::Vector2f& distance, const float dist, const float radius,
+					   const float strength)
+{
+	
+	const float mult{-100.0f};
+	
+	return (mult*strength*(radius - dist)/(radius*dist*dist*dist))*distance;
+	
+}
+
 void gravitas(cargo& ball, gravitor& grav)
 {
 	
-	const float mult{1.0f};
+	const sf::Vector2f distance{ball.get_position() - grav.get_position()};
 	
-	const sf::Vector2f dist{ball.get_position() - grav.get_position()};
+	const float dist{absuvect(distance)};
 	
+	const float radius{std::sqrt(radius_squared(grav))};
 	
-	
-	
+	if (dist < radius)
+	{
+		
+		ball.add_accel(gravector(distance, dist, radius, grav.show_strength()));
+		
+		std::cout << "[" << dist << " : " << radius << "]\n";
+		
+	}
+		
 }
 
 int main()
@@ -448,8 +519,12 @@ int main()
 	const std::string program_name{"Gravtacles V0.5"};
 	
 	assert(program_name != "");
+	
+	const float delta_delta_time{0.001f};
 	 
 	const float delta_time{0.025f};
+	
+	
 	 
 	const float window_x{704.0f};
 	const float window_y{704.0f};
@@ -480,14 +555,14 @@ int main()
 	
 	target goal{end_posit};
 	
-	std::vector <float> strengths{1.0f, -1.0f, 0.1f, -0.7f, 0.3f};	
+	std::vector <float> strengths{1.0f}; // , -1.0f, 0.1f, -0.7f, 0.3f};	
 	const int grav_number{static_cast<int>(strengths.size())};	
 	
-	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.1f*window_x, 0.9f*window_y),
-										 sf::Vector2f(0.8f*window_x, 0.2f*window_y),
-										 sf::Vector2f(0.7f*window_x, 0.5f*window_y),
-										 sf::Vector2f(0.1f*window_x, 0.3f*window_y),
-										 sf::Vector2f(0.9f*window_x, 0.8f*window_y)};
+	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.2f*window_x, 0.2f*window_y)};
+										 // sf::Vector2f(0.8f*window_x, 0.2f*window_y),
+										 // sf::Vector2f(0.7f*window_x, 0.5f*window_y),
+										 // sf::Vector2f(0.1f*window_x, 0.3f*window_y),
+										 // sf::Vector2f(0.9f*window_x, 0.8f*window_y)};
 	
 	std::vector <gravitor> gravs;
 	
@@ -507,7 +582,7 @@ int main()
 	 
 	sf::RenderWindow window{sf::VideoMode(window_x, window_y), program_name, sf::Style::Default};
 	
-	const int max_level{1};
+	const int max_level{10000};
 	
 	int current_level{1};
 	 
@@ -517,9 +592,11 @@ int main()
 		while (current_level <= max_level)
 		{
 			
-			bool stay_in_level{true};
+			bool stay_in_level{true};			
+			bool show_triforce{true};			
+			bool move_in_level{false};
 			
-			bool show_triforce{true};
+			ball.set_position(begin_posit);
 			
 			while (stay_in_level)
 			{
@@ -553,14 +630,47 @@ int main()
 				triforce.morph_polygon(window);
 				
 				while(clock.getElapsedTime().asSeconds() < delta_time)
-				{						
-
-				}
-				
-				if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 				{
 					
-					show_triforce = false;
+					sf::Clock delta_clock;
+					
+					while(delta_clock.getElapsedTime().asSeconds() < delta_delta_time)
+					{
+												
+					}
+					
+					if (move_in_level)
+					{
+						
+						const float delta_temp{delta_clock.getElapsedTime().asSeconds()};
+						
+						ball.reset_accel();
+						
+						for (int count{0}; count < grav_number; ++count)
+						{
+							
+							gravitas(ball, gravs[count]);
+							
+						}
+						
+						ball.speed_add_accel(delta_temp);
+						ball.posit_add_speed(delta_temp);						
+						ball.set_position();
+
+					}					
+					
+				}
+				
+				
+				
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && show_triforce)
+				{
+					
+					
+					show_triforce = false;					
+					move_in_level = true;
+					
+					ball.set_click_speed(window);
 					
 				}
 				
