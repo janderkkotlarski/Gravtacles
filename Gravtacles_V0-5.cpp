@@ -536,6 +536,8 @@ sf::Vector2f gravector(const sf::Vector2f& distance, const float dist, const flo
 	
 	const float mult{-20000.0f};
 	
+	assert(mult < 0.0f);
+	
 	const sf::Vector2f gravecs{(mult*strength*(radius - dist)*(radius - dist)/(radius*radius*dist))*distance};
 	
 	std::cout << "[" << dist << " : " << radius << "] => [" << gravecs.x << ", " << gravecs.y << "]" << "\n";
@@ -562,6 +564,13 @@ void gravitas(cargo& ball, gravitor& grav)
 		
 	}
 		
+}
+
+bool cargo_reach_target()
+{
+	
+	return false;
+	
 }
 
 int main()
@@ -606,10 +615,10 @@ int main()
 	
 	target goal{end_posit};
 	
-	std::vector <float> strengths{1.0f}; // , -1.0f, 0.1f, -0.7f, 0.3f};	
+	std::vector <float> strengths{-1.0f}; // , -1.0f, 0.1f, -0.7f, 0.3f};	
 	const int grav_number{static_cast<int>(strengths.size())};	
 	
-	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.5f*window_x, 0.5f*window_y)};
+	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.85f*window_x, 0.85f*window_y)};
 										 // sf::Vector2f(0.8f*window_x, 0.2f*window_y),
 										 // sf::Vector2f(0.7f*window_x, 0.5f*window_y),
 										 // sf::Vector2f(0.1f*window_x, 0.3f*window_y),
