@@ -217,6 +217,13 @@ class cargo
 		
 	}
 	
+	void reset_speed()
+	{
+		
+		m_speed = sf::Vector2f(0.0f, 0.0f);
+		
+	}
+	
 	void set_position(const sf::Vector2f& position)
 	{
 		
@@ -245,14 +252,14 @@ class cargo
 	void reset_accel()
 	{
 		
-		sf::Vector2f m_accel{0.0f, 0.0f};
+		m_accel = sf::Vector2f(0.0f, 0.0f);
 		
 	}
 	
 	void set_click_speed(sf::RenderWindow& window)
 	{
 		
-		const float mult{150.0f};
+		const float mult{300.0f};
 
 		const sf::Vector2f direction{static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - m_posit};
 		
@@ -280,6 +287,46 @@ class cargo
 		m_posit = m_posit + delta_time*m_speed;
 		
 	}
+	
+	void bounce(const sf::Vector2f& window_sizes)
+	{
+		
+		if (m_posit.x < 0.0f)
+		{
+			
+			m_speed.x = -m_speed.x;			
+			m_posit.x = -m_posit.x;
+			
+		}
+		
+		if (m_posit.x > window_sizes.x)
+		{
+			
+			m_speed.x = -m_speed.x;			
+			m_posit.x = window_sizes.x + window_sizes.x - m_posit.x;
+			
+		}
+		
+		if (m_posit.y < 0.0f)
+		{
+			
+			m_speed.y = -m_speed.y;			
+			m_posit.y = -m_posit.y;
+			
+		}
+		
+		if (m_posit.y > window_sizes.y)
+		{
+			
+			m_speed.y = -m_speed.y;			
+			m_posit.y = window_sizes.y + window_sizes.y - m_posit.y;
+			
+		}
+		
+		set_position();
+		
+	}
+	
 	
 	float show_radius()
 	{
@@ -487,9 +534,13 @@ sf::Vector2f gravector(const sf::Vector2f& distance, const float dist, const flo
 					   const float strength)
 {
 	
-	const float mult{-100.0f};
+	const float mult{-20000.0f};
 	
-	return (mult*strength*(radius - dist)/(radius*dist*dist*dist))*distance;
+	const sf::Vector2f gravecs{(mult*strength*(radius - dist)*(radius - dist)/(radius*radius*dist))*distance};
+	
+	std::cout << "[" << dist << " : " << radius << "] => [" << gravecs.x << ", " << gravecs.y << "]" << "\n";
+	
+	return gravecs;
 	
 }
 
@@ -498,7 +549,7 @@ void gravitas(cargo& ball, gravitor& grav)
 	
 	const sf::Vector2f distance{ball.get_position() - grav.get_position()};
 	
-	const float dist{absuvect(distance)};
+	const float dist{absuvect(distance) + 0.0001f};
 	
 	const float radius{std::sqrt(radius_squared(grav))};
 	
@@ -507,7 +558,7 @@ void gravitas(cargo& ball, gravitor& grav)
 		
 		ball.add_accel(gravector(distance, dist, radius, grav.show_strength()));
 		
-		std::cout << "[" << dist << " : " << radius << "]\n";
+		
 		
 	}
 		
@@ -558,7 +609,7 @@ int main()
 	std::vector <float> strengths{1.0f}; // , -1.0f, 0.1f, -0.7f, 0.3f};	
 	const int grav_number{static_cast<int>(strengths.size())};	
 	
-	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.2f*window_x, 0.2f*window_y)};
+	std::vector <sf::Vector2f> pozitions{sf::Vector2f(0.5f*window_x, 0.5f*window_y)};
 										 // sf::Vector2f(0.8f*window_x, 0.2f*window_y),
 										 // sf::Vector2f(0.7f*window_x, 0.5f*window_y),
 										 // sf::Vector2f(0.1f*window_x, 0.3f*window_y),
@@ -597,6 +648,7 @@ int main()
 			bool move_in_level{false};
 			
 			ball.set_position(begin_posit);
+			ball.reset_speed();
 			
 			while (stay_in_level)
 			{
@@ -651,11 +703,14 @@ int main()
 							
 							gravitas(ball, gravs[count]);
 							
+							
+							
 						}
 						
 						ball.speed_add_accel(delta_temp);
 						ball.posit_add_speed(delta_temp);						
 						ball.set_position();
+						ball.bounce(window_sizes);
 
 					}					
 					
