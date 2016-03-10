@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <cassert>
 #include <string>
 #include <vector>
@@ -7,11 +8,24 @@
  
 #include <SFML/Graphics.hpp>
 
+
+
 float absuvect(const sf::Vector2f& vecator)
 {
 	
 	return std::sqrt(vecator.x*vecator.x + vecator.y*vecator.y);
 	
+}
+
+std::string score_to_string(const int skore)
+{
+
+    std::stringstream stringer;
+    
+    stringer << skore;
+    
+    return stringer.str();
+    
 }
 
 class gravitor
@@ -53,9 +67,12 @@ class gravitor
 	void set_origin()
 	{
 		
+		const float mult{0.27f};
+		assert(mult > 0.0f);
+		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
 		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
-		m_radius = 0.25f*(m_image_bounds.width + m_image_bounds.height);
+		m_radius = mult*(m_image_bounds.width + m_image_bounds.height);
 		
 	}
 	
@@ -194,9 +211,12 @@ class cargo
 	void set_origin()
 	{
 		
+		const float mult{0.2f};
+		assert(mult > 0.0f);
+		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
 		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
-		m_radius = 0.25f*(m_image_bounds.width + m_image_bounds.height);
+		m_radius = mult*(m_image_bounds.width + m_image_bounds.height);
 		
 	}
 	
@@ -261,6 +281,7 @@ class cargo
 	{
 		
 		const float mult{300.0f};
+		assert(mult > 0.0f);
 
 		const sf::Vector2f direction{static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - m_posit};
 		
@@ -390,6 +411,7 @@ class pointer
 		const sf::Vector2f position{ball.get_position()};
 		
 		const float mult{0.33f};
+		assert(mult > 0.0f);
 		
 		const sf::FloatRect image_bounds{ball.get_sizes()};
 		
@@ -474,9 +496,12 @@ class target
 	void set_origin()
 	{
 		
+		const float mult{0.2f};
+		assert(mult > 0.0f);
+		
 		const sf::FloatRect m_image_bounds{m_sprite.getLocalBounds()};		
 		m_sprite.setOrigin(0.5f*m_image_bounds.width, 0.5f*m_image_bounds.height);
-		m_radius = 0.25f*(m_image_bounds.width + m_image_bounds.height);
+		m_radius = mult*(m_image_bounds.width + m_image_bounds.height);
 		
 	}
 	
@@ -539,6 +564,126 @@ class target
 class score
 {
 	
+	const std::string m_file_name{"VeraMono-Bold.ttf"};
+	
+	const float m_mult{0.07f};
+	
+	const float m_text_size{10.0f};
+	
+	const sf::Color m_creme{sf::Color(255, 224, 196, 255)};
+	
+	const std::string m_score_name{"Score: "};
+	
+	int m_score{0};
+	
+	sf::Font m_font;
+	
+	sf::Text m_text;
+	
+	void set_font()
+	{
+		
+		assert(m_file_name != "");
+		
+		if (!m_font.loadFromFile(m_file_name))
+		{
+				
+			std::cout << m_file_name << " not found!\n";
+				
+		}
+		 
+	}
+		
+	void set_text_font()
+	{
+		
+		m_text.setFont(m_font);
+		
+	}
+	
+	void set_text_size()
+	{
+		
+		assert(m_text_size > 0.0f);
+		
+		m_text.setCharacterSize(m_text_size);
+		
+	}
+	
+	void set_color()
+	{
+		
+		m_text.setColor(m_creme);
+		
+	}
+	
+	void set_origin()
+	{
+		
+		const sf::FloatRect rectangle{m_text.getLocalBounds()};
+		
+		m_text.setOrigin(0.5f*rectangle.width, 0.95f*rectangle.height);
+		
+	}
+	
+	void set_position(const sf::Vector2f& position)
+	{
+
+		m_text.setPosition(position);
+		
+	}
+	
+	public:
+	
+	void add_score()
+	{
+	
+		++m_score;
+		
+	}
+	
+	void textify_score()
+	{
+		
+		m_text.setString(m_score_name + score_to_string(m_score));
+		
+	}
+	
+	void show_score(sf::RenderWindow& window)
+	{
+		
+		window.draw(m_text);
+		
+	}
+	
+	score(const sf::Vector2f& position)
+		: m_text_size(m_mult*(position.x + position.y)), m_font(), m_text()
+	{
+		
+		assert(m_score_name != "");
+		assert(m_score == 0);
+		
+		set_font();
+		set_text_font();
+		set_text_size();
+		set_color();
+		textify_score();
+		set_origin();
+		set_position(position);
+		
+	}
+	
+	~score()
+	{
+		
+	}
+	
+};
+
+class start_text
+{
+	
+	const std::string m_string{"Welcome to Gravtacles, a simple and fun point and click game.\n"};
 	
 	
 };
@@ -658,8 +803,6 @@ int main()
 	const sf::Vector2f begin_posit{0.05f*window_sizes};
 	const sf::Vector2f end_posit{0.95f*window_sizes};
 	
-	
-	
 	cargo ball{begin_posit};
 	
 	pointer triforce{ball};
@@ -676,7 +819,7 @@ int main()
 	gravs.push_back(gravitor (strengths[grav_number - 1], pozitions[grav_number - 1]));
 	gravs[grav_number - 1].set_spriterator();
 
-		
+	score game_score{sf::Vector2f (0.48f*window_x, 0.035f*window_y)};
 
 	sf::RenderWindow window{sf::VideoMode(window_x, window_y), program_name, sf::Style::Default};
 	
@@ -686,7 +829,7 @@ int main()
 	 
 	while (window.isOpen())
     {
-				
+								
 		while (current_level <= max_level)
 		{
 			
@@ -712,10 +855,12 @@ int main()
 					gravs[count].show_gravitor(window);
 					
 				}
+												
+				goal.show_target(window);
 				
 				ball.show_cargo(window);
 				
-				goal.show_target(window);
+				game_score.show_score(window);
 				
 				if (show_triforce)
 				{
@@ -766,9 +911,11 @@ int main()
 							cargo_reach_target(ball, goal))
 						{
 							
-							cargo_target = true;
-							
+							cargo_target = true;							
 							stay_in_level = false;
+							
+							game_score.add_score();
+							game_score.textify_score();
 							
 						}
 
